@@ -15,7 +15,7 @@ namespace i4pTest
         {
             List<char> result = new List<char>();
             for (int i = 97; i < 123; i++)
-            {
+            {           
                 result.Add((char)i);  //Filling up the charlist with ascii letters - 97 - a, 122 - z
             }
             result.Add(' ');
@@ -133,38 +133,46 @@ namespace i4pTest
             string key="";
             int sorsz=0;
             string keyAlt = "";
-            for (int i = 0; i < words.Count; i++)
+            for (int k= 0; k < words.Count; k ++)
             {
+                for (int i = 0; i < words.Count; i++)
+                {
 
-              
-                string f = firstMessage.Substring(sorsz, words[i].Length);
-                Decoder getKey = new Decoder(f, words[i]);
-                keyAlt = getKey.Decrypting();
 
-                string s = secondMessage.Substring(sorsz, words[i].Length);
-                Decoder findMatch = new Decoder(s, keyAlt);
-                int j = 0;
-                string secondMatch = findMatch.Decrypting();
-                while(j<secondMatch.Length && secondMatch[j] != ' ')
-                {
-                    j++;
+                    string f = firstMessage.Substring(sorsz, words[i].Length);
+                    Decoder getKey = new Decoder(f, words[i]);
+                    keyAlt = getKey.Decrypting();
+
+                    string s = secondMessage.Substring(sorsz, words[i].Length);
+                    Decoder findMatch = new Decoder(s, keyAlt);
+                    int j = 0;
+                    string secondMatch = findMatch.Decrypting();
+                    while (j < secondMatch.Length && secondMatch[j] != ' ')
+                    {
+                        j++;
+                    }
+                    if (j < secondMatch.Length)
+                    {
+                        secondMatch = secondMatch.Substring(0, j);
+                    }
+                    while (j < words.Count && words[j].Substring(0, secondMatch.Length) != secondMatch)
+                    {
+                        j++;
+                    }
+                    if (j < words.Count)
+                    {
+                        sorsz += words[i].Length;
+                        key += keyAlt;
+
+                    }
+                    else
+                    {
+
+                    }
+
                 }
-                if (j < secondMatch.Length)
-                {
-                    secondMatch = secondMatch.Substring(0, j);
-                }
-                while(j<words.Count && !words[j].Contains(secondMatch))
-                {
-                    j++;
-                }
-                if (j < words.Count)
-                {
-                    sorsz = words[i].Length-1;
-                    key += keyAlt;
-                    i = 0;
-                }
-               
             }
+           
             return key;
             
             
@@ -192,7 +200,8 @@ namespace i4pTest
     {
         static void Main(string[] args)
         {
-            KeyBf a = new KeyBf("yjvnecofjqcmovlmlzuoitsw", "qvqokhvcusgdcjqqymcqvrz wn");
+            
+            KeyBf a = new KeyBf("pk ptejbaexjuyvvcbnfmxhx", "rr scmcruimdjftzhafuuzg e r");
             Console.WriteLine(a.FindingKey());
             Console.ReadKey();
            // KeyBf a = new KeyBf("syhdgqpcgtqrqowhqlfnyjbn", "uehgqyis xflfwulvkybflaqrvd");
