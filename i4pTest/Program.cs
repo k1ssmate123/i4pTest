@@ -22,13 +22,48 @@ namespace i4pTest
             key = encryptionKey;
         }
        
-      public void GetCharacters()
+        void GetCharacters()
         {
             for (int i = 97; i < 123; i++)
             {
                 characters.Add((char)i);  //Filling up the charlist with ascii letters - 97 - a, 122 - z
             }
             characters.Add(' ');
+        }
+
+        public string Encrypting()
+        {
+            GetCharacters();
+            string encryptedMsg="";
+
+            for (int i = 0; i < message.Length; i++)
+            {
+                int sums = ReturnCharCode(message[i])+ReturnCharCode(key[i]);
+                if (sums > 26)
+                {
+                    sums %= 27;
+                }
+              
+                encryptedMsg += characters[sums];
+            }
+
+            return encryptedMsg;
+
+        }
+
+        int ReturnCharCode(char letter)
+        {
+            int j = 0;
+            while(j < characters.Count&& characters[j] != letter)
+            {
+                j++;
+            }
+            if(j < characters.Count)
+            {
+                return j;
+            }
+            return -1;
+
         }
        
 
@@ -42,7 +77,7 @@ namespace i4pTest
             Console.Write("Key: ");
             string key = Console.ReadLine();
             Encoding encode = new Encoding(message, key);
-          
+            Console.WriteLine(encode.Encrypting());
 
 
         }
