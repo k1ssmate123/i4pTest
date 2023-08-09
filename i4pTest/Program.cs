@@ -1,31 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Runtime.Remoting.Messaging;
 
 namespace i4pTest
 {
     
-    public class Encoding
+    class CharHandling
     {
-        protected string message;
-       protected string key;
-        public string Message { get { return message; } }
-        public string Key { get { return key; } }
 
         protected List<char> characters = GetCharacters();
-
-        public Encoding(string inputMessage, string encryptionKey)
-        {
-            message = inputMessage;
-            key = encryptionKey;
-        }
-        public Encoding()
-        {
-            
-        }
-
-        static List<char> GetCharacters()
+        public static List<char> GetCharacters()
         {
             List<char> result = new List<char>();
             for (int i = 97; i < 123; i++)
@@ -35,6 +21,42 @@ namespace i4pTest
             result.Add(' ');
             return result;
         }
+        protected int ReturnCharCode(char letter)
+        {
+            int j = 0;
+            while (j < characters.Count && characters[j] != letter)
+            {
+                j++;
+            }
+            if (j < characters.Count)
+            {
+                return j;
+            }
+            return -1;
+
+        }
+    }
+
+    class Encoder : CharHandling
+    {
+        protected string message;
+       protected string key;
+        public string Message { get { return message; } }
+        public string Key { get { return key; } }
+
+       
+
+        public Encoder(string inputMessage, string encryptionKey)
+        {
+            message = inputMessage.ToLower();
+            key = encryptionKey;
+        }
+        public Encoder()
+        {
+            
+        }
+
+      
 
         public string Encrypting()
         {
@@ -56,29 +78,19 @@ namespace i4pTest
 
         }
 
-        protected int ReturnCharCode(char letter)
-        {
-            int j = 0;
-            while (j < characters.Count && characters[j] != letter)
-            {
-                j++;
-            }
-            if (j < characters.Count)
-            {
-                return j;
-            }
-            return -1;
-
-        }
+     
 
 
     }
 
-    class Decoding : Encoding
+    class Decoder : CharHandling
     {
-        public Decoding(string inputMessage, string decryptionKey)
+        string message, key;
+        public string Message { get { return message; } }
+        public string Key { get { return key; } }
+        public Decoder(string inputMessage, string decryptionKey)
         {
-            message = inputMessage;
+            message = inputMessage.ToLower();
             key = decryptionKey;
         }
 
@@ -101,11 +113,59 @@ namespace i4pTest
         }
     }
 
+
+    class KeyBf : CharHandling
+    {
+        protected string firstMessage;
+        protected string secondMessage;
+        public string FirstMessage { get { return firstMessage; } }
+        public string SecondMessage { get { return secondMessage; } }
+        List<string> words = WordsList();
+        public KeyBf(string firstMessage, string secondMessage)
+        {
+            this.firstMessage = firstMessage;
+            this.secondMessage = secondMessage;
+        }
+
+       public string FindingKey()
+        {
+            string key="";
+
+            for (int i = 0; i < words.Count; i++)
+            {
+                
+            }
+            
+            
+            
+            
+            
+            return key;
+        }
+
+        static List<string> WordsList()
+        {
+            List<string> wrds = new List<string>();
+            StreamReader inp = new StreamReader("words.txt");
+            while (!inp.EndOfStream)
+            {
+                wrds.Add(inp.ReadLine());
+
+            }
+            inp.Close();
+            return wrds;
+        }
+    }
+
     internal class Program
     {
         static void Main(string[] args)
         {
-            TaskTwo();
+            TaskOne();
+            TaskOne();
+            Console.ReadKey();
+           // KeyBf a = new KeyBf("syhdgqpcgtqrqowhqlfnyjbn", "uehgqyis xflfwulvkybflaqrvd");
+            //a.FindingKey();
         }
 
         static void TaskOne()
@@ -119,7 +179,7 @@ namespace i4pTest
                 key = Console.ReadLine();
             }
             while (key.Length < message.Length);
-            Encoding encode = new Encoding(message, key);
+            Encoder encode = new Encoder(message, key);
             Console.WriteLine("The encrypted message is: " + encode.Encrypting());
         }
 
@@ -134,7 +194,7 @@ namespace i4pTest
                 key = Console.ReadLine();
             }
             while (key.Length < encMessage.Length);
-            Decoding decoding = new Decoding(encMessage, key);
+            Decoder decoding = new Decoder(encMessage, key);
             Console.WriteLine("The message is: "+decoding.Decrypting());
           
         }
