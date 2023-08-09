@@ -111,6 +111,7 @@ namespace i4pTest
             return decryptedMsg;
 
         }
+        
     }
 
 
@@ -130,17 +131,47 @@ namespace i4pTest
        public string FindingKey()
         {
             string key="";
-
+            int sorsz=0;
+            string keyAlt = "";
             for (int i = 0; i < words.Count; i++)
             {
-                
+
+              
+                string f = firstMessage.Substring(sorsz, words[i].Length);
+                Decoder getKey = new Decoder(f, words[i]);
+                keyAlt = getKey.Decrypting();
+
+                string s = secondMessage.Substring(sorsz, words[i].Length);
+                Decoder findMatch = new Decoder(s, keyAlt);
+                int j = 0;
+                string secondMatch = findMatch.Decrypting();
+                while(j<secondMatch.Length && secondMatch[j] != ' ')
+                {
+                    j++;
+                }
+                if (j < secondMatch.Length)
+                {
+                    secondMatch = secondMatch.Substring(0, j);
+                }
+                while(j<words.Count && !words[j].Contains(secondMatch))
+                {
+                    j++;
+                }
+                if (j < words.Count)
+                {
+                    sorsz = words[i].Length-1;
+                    key += keyAlt;
+                    i = 0;
+                }
+               
             }
-            
-            
-            
-            
-            
             return key;
+            
+            
+            
+            
+            
+           
         }
 
         static List<string> WordsList()
@@ -161,8 +192,8 @@ namespace i4pTest
     {
         static void Main(string[] args)
         {
-            TaskOne();
-            TaskOne();
+            KeyBf a = new KeyBf("yjvnecofjqcmovlmlzuoitsw", "qvqokhvcusgdcjqqymcqvrz wn");
+            Console.WriteLine(a.FindingKey());
             Console.ReadKey();
            // KeyBf a = new KeyBf("syhdgqpcgtqrqowhqlfnyjbn", "uehgqyis xflfwulvkybflaqrvd");
             //a.FindingKey();
