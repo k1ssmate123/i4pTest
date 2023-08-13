@@ -4,7 +4,7 @@ using System.IO;
 
 namespace i4pTest
 {
-    class CharHandling
+    class CharHandling //Setting up the method of encryption
     {
         protected List<char> characters = GetCharacters();
         public static List<char> GetCharacters()
@@ -32,7 +32,7 @@ namespace i4pTest
         }
     }
 
-    class Encoder : CharHandling
+    class Encoder : CharHandling //Encrypting related method(s)
     {
         protected string message;
         protected string key;
@@ -64,7 +64,7 @@ namespace i4pTest
         }
     }
 
-    class Decoder : CharHandling
+    class Decoder : CharHandling //Decrypting related method(s)
     {
         string message, key;
         public string Message { get { return message; } }
@@ -92,7 +92,7 @@ namespace i4pTest
         }
     }
 
-    class KeyBf : CharHandling
+    class KeyBf : CharHandling //Key bruteforcing
     {
         protected string firstMessage;
         protected string secondMessage;
@@ -106,7 +106,7 @@ namespace i4pTest
         }
 
 
-        public string f()
+        public string f() //Finding key
         {
             string finalKey = "";
             List<int> noWords = new List<int>();
@@ -126,17 +126,15 @@ namespace i4pTest
 
                     if (keya.Length <= secondMessage.Length && words[i].Length <= secondMessage.Substring(j).Length && keya.Length != 0)
                     {
-                        
-                        masik = new Decoder(secondMessage.Substring(j, words[i].Length), keya).Decrypting();
+                        masik = new Decoder(secondMessage.Substring(j, words[i].Length), keya).Decrypting().Split(' ')[0];
                         Console.Write(" "+words[i]+ " "+secondMessage.Substring(j, words[i].Length) + " " + keya + " " + masik+" ");
-                        
                     }
 
                    
                     if (masik != "" && keya != "")
                     {
                         int k = 0;
-                        while (k < words.Count && words[k].IndexOf(masik) == -1)
+                        while (k < words.Count && !words[k].StartsWith(masik))
                         {
                             k++;
                         }
@@ -145,17 +143,14 @@ namespace i4pTest
                         {
                             if (words[k].Length > masik.Length)
                             {
-                                
                                 keya = new Decoder(secondMessage.Substring(j, words[k].Length), words[k]).Decrypting();
-                                
-
                             }
                             Console.Write("Second msg subs: "+secondMessage.Substring(j, words[k].Length) + " words k:" + words[k]+" key:"+keya+"\n");
                             j += keya.Length-1;
                             finalKey += keya;
                            
                             noWords = new List<int>();
-                           
+                            Console.WriteLine(finalKey);
                         }
                         else
                         {
@@ -166,57 +161,6 @@ namespace i4pTest
             }
             return finalKey;
         }
-        
-
-        public string FindingKey()
-        {
-            string key = "";
-            int sorsz = 0;
-            string keyAlt = "";
-            for (int k = 0; k < words.Count; k++)
-            {
-                for (int i = 0; i < words.Count; i++)
-                {
-                    string f = firstMessage.Substring(sorsz, words[i].Length);
-                    Decoder getKey = new Decoder(f, words[i]);
-                    keyAlt = getKey.Decrypting();
-
-                    string s = secondMessage.Substring(sorsz, words[i].Length);
-                    Decoder findMatch = new Decoder(s, keyAlt);
-                    int j = 0;
-                    string secondMatch = findMatch.Decrypting();
-                    while (j < secondMatch.Length && secondMatch[j] != ' ')
-                    {
-                        j++;
-                    }
-                    if (j < secondMatch.Length)
-                    {
-                        secondMatch = secondMatch.Substring(0, j);
-                    }
-                    while (j < words.Count && !words[j].Contains(secondMatch))
-                    {
-                        j++;
-                    }
-                    if (j < words.Count)
-                    {
-
-                        Decoder fm = new Decoder(secondMessage.Substring(sorsz, words[j].Length), words[j]);
-                        if (fm.Decrypting() == keyAlt)
-                        {
-
-                        }
-                        sorsz = words[i].Length - 1;
-                        key += keyAlt;
-                    }
-                    else
-                    {
-
-                    }
-                }
-            }
-            return key;
-        }
-
         static List<string> WordsList()
         {
             List<string> wrds = new List<string>();
@@ -235,13 +179,9 @@ namespace i4pTest
     {
         static void Main(string[] args)
         {
-            KeyBf a = new KeyBf("adexvfzlhjmd", "adehwxfhkbapde");
+            KeyBf a = new KeyBf("adexvfzlhjmd", "adehwxfhkbapde"); //1st message: accurate act; 2nd message: access actress; key: abcdefghijklmnopqrst
             Console.WriteLine(a.f());
-
-
             Console.ReadKey();
-            // KeyBf a = new KeyBf("syhdgqpcgtqrqowhqlfnyjbn", "uehgqyis xflfwulvkybflaqrvd");
-            //a.FindingKey();
         }
 
         static void TaskOne()
