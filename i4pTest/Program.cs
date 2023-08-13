@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace i4pTest
 {
@@ -83,6 +81,7 @@ namespace i4pTest
             for (int i = 0; i < message.Length; i++)
             {
                 int sum = ReturnCharCode(message[i]) - ReturnCharCode(key[i]);
+
                 if (sum < 0)
                 {
                     sum = 27 + sum;
@@ -107,12 +106,6 @@ namespace i4pTest
         }
 
 
-        public string ReturnKey(string msg, string word)
-        {
-            return new Decoder(msg, word).Decrypting();
-
-        }
-
         public string f()
         {
             string finalKey = "";
@@ -122,46 +115,58 @@ namespace i4pTest
                 for (int i = 0; i < words.Count; i++)
                 {
                     if (noWords.Contains(i)) { i++; }
-                    string keya = new Decoder(firstMessage.Substring(j, words[i].Length), words[i]).Decrypting();
-                  
-                    string masik = new Decoder(secondMessage.Substring(j, words[i].Length), keya).Decrypting();
-                    
-                    int k = 0;
-                    while (k < words.Count && Left(words[k], masik.Length) != masik)
-                    {
-                        k++;
-                    }
-                    if (k < words.Count)
-                    {
-                        if (words[k].Length > masik.Length)
-                        {
-                            keya = new Decoder(secondMessage.Substring(j, words[i].Length), words[k].Substring(masik.Length)).Decrypting();
-                        }
-                        j = keya.Length + 1;
-                        finalKey += keya;
-                        noWords = new List<int>();
-                        i = 0;
+                    string keya = "";
+                    string masik = "";
 
-                    }
-                    else
+                    if (words[i].Length <= firstMessage.Length && words[i].Length <= firstMessage.Substring(j).Length)
                     {
-                        finalKey = "";
-                        j = 0;
-                        noWords.Add(i);
+                        keya = new Decoder(firstMessage.Substring(j, words[i].Length), words[i]).Decrypting();
+                        Console.Write(words[i]+" "+ firstMessage.Substring(j, words[i].Length)+" "+keya);
+                    }
+
+                    if (keya.Length <= secondMessage.Length && words[i].Length <= secondMessage.Substring(j).Length && keya.Length != 0)
+                    {
+                        
+                        masik = new Decoder(secondMessage.Substring(j, words[i].Length), keya).Decrypting();
+                        Console.Write(" "+words[i]+ " "+secondMessage.Substring(j, words[i].Length) + " " + keya + " " + masik+" ");
+                        
+                    }
+
+                   
+                    if (masik != "" && keya != "")
+                    {
+                        int k = 0;
+                        while (k < words.Count && words[k].IndexOf(masik) == -1)
+                        {
+                            k++;
+                        }
+                        Console.WriteLine(k);
+                        if (k < words.Count)
+                        {
+                            if (words[k].Length > masik.Length)
+                            {
+                                
+                                keya = new Decoder(secondMessage.Substring(j, words[k].Length), words[k]).Decrypting();
+                                
+
+                            }
+                            Console.Write("Second msg subs: "+secondMessage.Substring(j, words[k].Length) + " words k:" + words[k]+" key:"+keya+"\n");
+                            j += keya.Length-1;
+                            finalKey += keya;
+                           
+                            noWords = new List<int>();
+                           
+                        }
+                        else
+                        {
+                            
+                        }
                     }
                 }
             }
             return finalKey;
         }
-        public string Left(string input, int length)
-        {
-            string result = input;
-            if (input != null && input.Length > length)
-            {
-                result = input.Substring(0, length);
-            }
-            return result;
-        }
+        
 
         public string FindingKey()
         {
