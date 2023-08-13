@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace i4pTest
 {
@@ -83,7 +85,6 @@ namespace i4pTest
                 int sum = ReturnCharCode(message[i]) - ReturnCharCode(key[i]);
                 if (sum < 0)
                 {
-
                     sum = 27 + sum;
                 }
                 decryptedMsg += characters[sum];
@@ -103,6 +104,63 @@ namespace i4pTest
         {
             this.firstMessage = firstMessage;
             this.secondMessage = secondMessage;
+        }
+
+
+        public string ReturnKey(string msg, string word)
+        {
+            return new Decoder(msg, word).Decrypting();
+
+        }
+
+        public string f()
+        {
+            string finalKey = "";
+            List<int> noWords = new List<int>();
+            for (int j = 0; j < firstMessage.Length; j++)
+            {
+                for (int i = 0; i < words.Count; i++)
+                {
+                    if (noWords.Contains(i)) { i++; }
+                    string keya = new Decoder(firstMessage.Substring(j, words[i].Length), words[i]).Decrypting();
+                  
+                    string masik = new Decoder(secondMessage.Substring(j, words[i].Length), keya).Decrypting();
+                    
+                    int k = 0;
+                    while (k < words.Count && Left(words[k], masik.Length) != masik)
+                    {
+                        k++;
+                    }
+                    if (k < words.Count)
+                    {
+                        if (words[k].Length > masik.Length)
+                        {
+                            keya = new Decoder(secondMessage.Substring(j, words[i].Length), words[k].Substring(masik.Length)).Decrypting();
+                        }
+                        j = keya.Length + 1;
+                        finalKey += keya;
+                        noWords = new List<int>();
+                        i = 0;
+
+                    }
+                    else
+                    {
+                        finalKey = "";
+                        j = 0;
+                        noWords.Add(i);
+                    }
+                }
+            }
+            return finalKey;
+        }
+        public string Left(string input, int length)
+        {
+            string result = input;
+            if (input != null && input.Length > length)
+            {
+                result = input.Substring(0, length);
+            }
+            return result;
         }
 
         public string FindingKey()
@@ -136,9 +194,14 @@ namespace i4pTest
                     }
                     if (j < words.Count)
                     {
+
+                        Decoder fm = new Decoder(secondMessage.Substring(sorsz, words[j].Length), words[j]);
+                        if (fm.Decrypting() == keyAlt)
+                        {
+
+                        }
                         sorsz = words[i].Length - 1;
                         key += keyAlt;
-
                     }
                     else
                     {
@@ -167,8 +230,10 @@ namespace i4pTest
     {
         static void Main(string[] args)
         {
-            KeyBf a = new KeyBf("pk ptejbaexjuyvvcbnfmxhx", "rr scmcruimdjftzhafuuzg e r");
-            Console.WriteLine(a.FindingKey());
+            KeyBf a = new KeyBf("adexvfzlhjmd", "adehwxfhkbapde");
+            Console.WriteLine(a.f());
+
+
             Console.ReadKey();
             // KeyBf a = new KeyBf("syhdgqpcgtqrqowhqlfnyjbn", "uehgqyis xflfwulvkybflaqrvd");
             //a.FindingKey();
