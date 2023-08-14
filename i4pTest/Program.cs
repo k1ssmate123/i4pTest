@@ -1,6 +1,6 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 namespace i4pTest
@@ -109,71 +109,7 @@ namespace i4pTest
             msgs.Add(secondMessage);
         }
 
-        public void FindingKey()
-        {
-            int sNum = 0;
-            string altKey = "";
-            string fullKey = "";
-            int main = 0;
-            int secondary = 1;
-
-            for (int i = 0; i < words.Count; i++)
-            {
-                string firstSub = msgs[main].Substring(sNum, words[i].Length);
-                altKey = GetDecodedMsg(firstSub, words[i]);  //Return a piece of the key based on wordlist Nth element
-                Console.WriteLine("\n" + firstSub + " " + words[i] + " " + altKey);
-                string secondSub = msgs[secondary].Substring(sNum, altKey.Length);
-                string wordAttempt = GetDecodedMsg(secondSub, altKey).Split(' ')[0]; // Return a wordpiece with the previously gained key; if it contains two bit /seperated by space/, it only displays the first
-                Console.WriteLine(secondSub + " " + wordAttempt);
-                int j = 0;
-                while (j < words.Count && !words[j].Contains(wordAttempt)) //Linear search for full word based on previous word string
-                {
-                    j++;
-                }
-                if (j < words.Count)
-                {
-                    if (words[j].EndsWith(wordAttempt)) //If it ends with the bit, no additional operation needed
-                    {
-                        fullKey += altKey;
-
-                        sNum += firstSub.Length + 1;
-
-                        fullKey += GetDecodedMsg(msgs[main][firstSub.Length].ToString(), " ");
-                        Console.WriteLine(fullKey);
-
-                    }
-                    else //If it starts with it, or in the middle of the word, we need to decrypt the rest of the word (on the right of the bit)
-                    {
-                        int lengthSub = words[j].Substring(0, words[j].IndexOf(wordAttempt, StringComparison.Ordinal)).Length;
-                        secondSub = msgs[secondary].Substring(sNum + lengthSub + wordAttempt.Length, words[j].Substring(lengthSub + wordAttempt.Length).Length);
-                        altKey += GetDecodedMsg(secondSub, words[j].Substring(lengthSub + wordAttempt.Length));
-                        string firstSubMod = msgs[main].Substring(sNum, altKey.Length); //We have to check if the new,longer key finds word in first message too
-                        wordAttempt = GetDecodedMsg(firstSubMod, altKey);
-                        if (wordAttempt.Contains(" "))
-                        {
-                            wordAttempt = wordAttempt.Split(' ')[1];
-                        }
-                        int k = 0;
-                        while (k < words.Count && words[k].Contains(wordAttempt)) { k++; }
-                        if (k < words.Count)
-                        {
-                            fullKey += altKey;
-                            sNum += firstSub.Length + 1;
-                            fullKey += GetDecodedMsg(msgs[main][firstSub.Length].ToString(), " ");
-                            Console.WriteLine(fullKey);
-                        }
-                        else
-                        {
-                            fullKey = "";
-                            sNum = 0;
-                        }
-                    }
-                }
-            }
-            Console.WriteLine(fullKey);
-        }
-
-
+     
         public int LinearSearch(string word)
         {
             int j = 0;
@@ -190,59 +126,64 @@ namespace i4pTest
             int s = 0; //shorter
             int l = 1; //longer
             string fullKey = "";
+            string keyA = "";
             for (int i = 0; i < words.Count; i++)
             {
                 string firstSub = msgs[s].Substring(k, words[i].Length);
-                string keyA = GetDecodedMsg(firstSub, words[i]);
+                if (keyA == "") { keyA = GetDecodedMsg(firstSub, words[i]); }
 
-                Console.WriteLine("\n"+firstSub + " "+ keyA+" " + words[i]);
-
+                Console.WriteLine("\n" + firstSub + " " + keyA + " " + words[i]);
+                k = fullKey.Length;
                 string secondSub = msgs[l].Substring(k, keyA.Length);
                 string wordA = GetDecodedMsg(secondSub, keyA);
-                if(wordA.Contains(" "))
+                Console.WriteLine(wordA);
+                if (wordA.Contains(" ") && !wordA.EndsWith(" "))
                 {
                     wordA = wordA.Split(' ')[1];
                 }
-                Console.WriteLine(secondSub+" "+wordA);
+                Console.WriteLine(secondSub + " " + wordA);
                 int j = LinearSearch(wordA);
                 if (j < words.Count)
                 {
                     int pos = words[j].IndexOf(wordA) + wordA.Length;
                     string letters = words[j].Substring(pos);
-               
-                    if (secondSub.Length+letters.Length > firstSub.Length)
+                    Console.WriteLine(letters.Length + " : " + secondSub.Length + " : " + firstSub.Length);
+                    if (secondSub.Length + letters.Length > firstSub.Length)
                     {
-                        Console.WriteLine(msgs[l].Substring(k + pos, letters.Length)+" "+letters);
+                        Console.WriteLine(msgs[l].Substring(k + pos, letters.Length) + " " + letters);
                         string extraLetters = GetDecodedMsg(msgs[l].Substring(k + pos, letters.Length), letters);
-                       
 
-                      
-                        keyA += extraLetters;
-                        Console.WriteLine(extraLetters);
-                        
-                        Console.WriteLine((msgs[s].Substring(k + pos, letters.Length)));
-                        Console.WriteLine(GetDecodedMsg(msgs[s].Substring(k + pos, letters.Length), extraLetters));
 
-                     
-                          if (GetDecodedMsg(msgs[s].Substring(k + pos, letters.Length), extraLetters).Contains(" "))
-                          {
-                            k++;
-                          }
+                       // k += keyA.Length + 1;
+                        fullKey += keyA;
+                        keyA = extraLetters.Substring(1);
 
-                        k += keyA.Length;
-                        keyA += GetDecodedMsg(msgs[l][k].ToString(), " ");
 
-                       
 
+                        fullKey += GetDecodedMsg(msgs[s][k+keyA.Length+2].ToString(), " ");
                         string temp = msgs[s];
                         msgs[s] = msgs[l];
-                        msgs[l]= temp;
+                        msgs[l] = temp;
                         i = -1;
-                        
                     }
-                    fullKey += keyA;
+                    else
+                    {
+                        Console.WriteLine("didlidudli");
+                        fullKey += keyA;
+                        fullKey += GetDecodedMsg(msgs[l].Substring(k + pos, letters.Length), letters);
+                   
+                       // k +=keyA.Length+1;
+                        fullKey += GetDecodedMsg(msgs[l][k+keyA.Length+1].ToString(), " ");
+                        keyA = "";
+                        string temp = msgs[s];
+                        msgs[s] = msgs[l];
+                        msgs[l] = temp;
+                        i = -1;
+
+                    }
                     Console.WriteLine(fullKey);
                 }
+                else { keyA = "";}
             }
         }
 
@@ -275,7 +216,7 @@ namespace i4pTest
 
 
             finding.Finding();
-            //TaskTwo();
+
             Console.ReadKey();
         }
 
