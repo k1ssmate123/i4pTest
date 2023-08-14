@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net.Security;
+using System.Runtime.ExceptionServices;
 using System.Security.Permissions;
+using System.Text;
 
 namespace i4pTest
 {
@@ -33,19 +37,19 @@ namespace i4pTest
         }
     }
 
-    class Encoder : CharHandling //Encrypting related method(s)
+    class Encryption : CharHandling //Encrypting related method(s)
     {
         protected string message;
         protected string key;
         public string Message { get { return message; } }
         public string Key { get { return key; } }
 
-        public Encoder(string inputMessage, string encryptionKey)
+        public Encryption(string inputMessage, string encryptionKey)
         {
             message = inputMessage.ToLower();
             key = encryptionKey;
         }
-        public Encoder()
+        public Encryption()
         {
         }
 
@@ -65,12 +69,12 @@ namespace i4pTest
         }
     }
 
-    class Decoder : CharHandling //Decrypting related method(s)
+    class Decryption : CharHandling //Decrypting related method(s)
     {
         string message, key;
         public string Message { get { return message; } }
         public string Key { get { return key; } }
-        public Decoder(string inputMessage, string decryptionKey)
+        public Decryption(string inputMessage, string decryptionKey)
         {
             message = inputMessage.ToLower();
             key = decryptionKey;
@@ -97,6 +101,7 @@ namespace i4pTest
     {
         protected string firstMessage;
         protected string secondMessage;
+        List<string> msgs = new List<string>();
         public string FirstMessage { get { return firstMessage; } }
         public string SecondMessage { get { return secondMessage; } }
         List<string> words = WordsList();
@@ -104,86 +109,29 @@ namespace i4pTest
         {
             this.firstMessage = firstMessage;
             this.secondMessage = secondMessage;
+            msgs.Add(firstMessage);
+            msgs.Add(secondMessage);
         }
 
 
-        public string f() //Finding key
+        
+
+        
+        public void FindingKey()
         {
-            string finalKey = "";
-
-            for (int j = 0; j < firstMessage.Length; j++)
-            {
-
-                for (int i = 0; i < words.Count; i++)
-                {
-
-                    string keya = "";
-                    string masik = "";
-                    string cutFMsg = firstMessage.Substring(j, words[i].Length);
-                    if (j < firstMessage.Length)
-                    {
-                        if (words[i].Length <= firstMessage.Length && words[i].Length <= firstMessage.Substring(j).Length)
-                        {
-                            keya = new Decoder(cutFMsg, words[i]).Decrypting();
-                            Console.WriteLine("FM Sub: " + cutFMsg + " - " + words[i] + " - " + keya);
-                        }
-                    }
-
-                    if (j < secondMessage.Length)
-                    {
-                        if (keya.Length <= secondMessage.Length && words[i].Length <= secondMessage.Substring(j).Length && keya.Length != 0)
-                        {
-                            masik = new Decoder(secondMessage.Substring(j, words[i].Length), keya).Decrypting().Split(' ')[0];
-                            Console.WriteLine("SM Sub: " + secondMessage.Substring(j, words[i].Length) + " - " + keya + " - " + masik);
-                        }
-                    }
-
-                    if (masik != "" && keya != "")
-                    {
-                        int k = 0;
-
-                        while (k < words.Count && !words[k].Contains(masik))
-                        {
-                            k++;
-                        }
-
-                        if (k < words.Count)
-                        {
-                            if (words[k].Length > masik.Length && words[k].Length > cutFMsg.Length && !words[k].EndsWith(masik))
-                            {
-                                Console.WriteLine(masik + " - " + words[k]);
-                                Console.WriteLine(secondMessage.Substring(j + words[k].IndexOf(masik) + masik.Length, words[k].Length - masik.Length - 1) + " - " + words[k].Substring(words[k].IndexOf(masik) + masik.Length));
-                                keya += new Decoder(secondMessage.Substring(j + words[k].IndexOf(masik) + masik.Length, words[k].Length - masik.Length - 1), words[k].Substring(words[k].IndexOf(masik) + masik.Length)).Decrypting();
-                                string firstLong = new Decoder(firstMessage.Substring(j, keya.Length), keya).Decrypting();
-
-
-                                keya += new Decoder(secondMessage[j].ToString(), " ").Decrypting();
-
-                            }
-
-                            j += keya.Length;
-                            finalKey += keya;
-                        }
-
-                        Console.WriteLine(finalKey);
-                    }
-
-                }
-            }
-            return finalKey;
-        }
-
-        public void AttempQuadrillionTwo()
-        {
+           
             int sNum = 0;
             string altKey = "";
             string fullKey = "";
+            int main = 0;
+            int secondary = 1;
+       
             for (int i = 0; i < words.Count; i++)
             {
-                string firstSub = firstMessage.Substring(sNum, words[i].Length);
+                string firstSub = msgs[main].Substring(sNum, words[i].Length);
                 altKey = GetDecodedMsg(firstSub, words[i]);  //Return a piece of the key based on wordlist Nth element
-                Console.WriteLine("\n"+firstSub+" " + words[i]+" "+altKey);
-                string secondSub = secondMessage.Substring(sNum, altKey.Length);
+                Console.WriteLine("\n"+ firstSub + " " + words[i]+" "+altKey);
+                string secondSub = msgs[secondary].Substring(sNum, altKey.Length);
                 string wordAttempt = GetDecodedMsg(secondSub, altKey).Split(' ')[0]; // Return a wordpiece with the previously gained key; if it contains two bit /seperated by space/, it only displays the first
                 Console.WriteLine(secondSub+" "+wordAttempt);
                 int j = 0;
@@ -198,35 +146,36 @@ namespace i4pTest
                     if (words[j].EndsWith(wordAttempt)) //If it ends with the bit, no additional operation needed
                     {
                         fullKey += altKey;
-                      
+                       
                         sNum += firstSub.Length + 1;
                        
-                        fullKey += GetDecodedMsg(firstMessage[firstSub.Length].ToString(), " ");
+                        fullKey += GetDecodedMsg(msgs[main][firstSub.Length].ToString(), " ");
                         Console.WriteLine(fullKey);
 
                     }
                     else //If it starts with it, or in the middle of the word, we need to decrypt the rest of the word (on the right of the bit)
                     {
                         int lengthSub = words[j].Substring(0, words[j].IndexOf(wordAttempt, StringComparison.Ordinal)).Length;
-                        secondSub = secondMessage.Substring(sNum +lengthSub+ wordAttempt.Length, words[j].Substring(lengthSub + wordAttempt.Length).Length);
+                        secondSub = msgs[secondary].Substring(sNum +lengthSub+ wordAttempt.Length, words[j].Substring(lengthSub + wordAttempt.Length).Length);
                        
                        
                         altKey += GetDecodedMsg(secondSub, words[j].Substring(lengthSub+wordAttempt.Length));
 
-                        string firstSubMod = firstMessage.Substring(sNum, altKey.Length); //We have to check if the new,longer key finds word in first message too
+                        string firstSubMod = msgs[main].Substring(sNum, altKey.Length); //We have to check if the new,longer key finds word in first message too
                         wordAttempt = GetDecodedMsg(firstSubMod, altKey);
-                        if(wordAttempt.Contains(" "))
+                        if (wordAttempt.Contains(" "))
                         {
                             wordAttempt = wordAttempt.Split(' ')[1];
                         }
                         int k = 0;
-                        while(k<words.Count && words[k].Contains(wordAttempt)) { k++; }
+                        while (k < words.Count && words[k].Contains(wordAttempt)) { k++; }
                         if (k < words.Count)
                         {
                             
+                          
                             fullKey += altKey;
-                            sNum += firstSub.Length+1;
-                            fullKey += GetDecodedMsg(firstMessage[firstSub.Length].ToString(), " ");
+                            sNum += firstSub.Length + 1;
+                            fullKey += GetDecodedMsg(msgs[main][firstSub.Length].ToString(), " ");
                             Console.WriteLine(fullKey);
 
                         }
@@ -235,6 +184,7 @@ namespace i4pTest
                             fullKey = "";
                             sNum = 0;
                         }
+
 
                     }
                 }
@@ -247,7 +197,7 @@ namespace i4pTest
 
         string GetDecodedMsg(string msg, string key)
         {
-            return new Decoder(msg, key).Decrypting();
+            return new Decryption(msg, key).Decrypting();
         }
 
         static List<string> WordsList()
@@ -268,11 +218,12 @@ namespace i4pTest
     {
         static void Main(string[] args)
         {
-            KeyBf a = new KeyBf("ym zazrukrtoyu qdkinquj", " t bkgkjdviinbyuijabywicudn");
-            a.AttempQuadrillionTwo();
+            KeyBf finding = new KeyBf(" t bkgkjdviinbyuijabywicudn","ym zazrukrtoyu qdkinquj");
+            finding.FindingKey();
+            
             
 
-
+            
 
             Console.ReadKey();
 
@@ -290,7 +241,7 @@ namespace i4pTest
                 key = Console.ReadLine();
             }
             while (key.Length < message.Length);
-            Encoder encode = new Encoder(message, key);
+            Encryption encode = new Encryption(message, key);
             Console.WriteLine("The encrypted message is: " + encode.Encrypting());
         }
 
@@ -305,7 +256,7 @@ namespace i4pTest
                 key = Console.ReadLine();
             }
             while (key.Length < encMessage.Length);
-            Decoder decoding = new Decoder(encMessage, key);
+            Decryption decoding = new Decryption(encMessage, key);
             Console.WriteLine("The message is: " + decoding.Decrypting());
         }
     }
