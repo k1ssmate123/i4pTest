@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 
@@ -172,6 +173,80 @@ namespace i4pTest
             Console.WriteLine(fullKey);
         }
 
+
+        public int LinearSearch(string word)
+        {
+            int j = 0;
+            while (j < words.Count && !words[j].Contains(word))
+            {
+                j++;
+            }
+            return j;
+        }
+        public void Finding()
+        {
+            int k = 0;
+
+            int s = 0; //shorter
+            int l = 1; //longer
+            string fullKey = "";
+            for (int i = 0; i < words.Count; i++)
+            {
+                string firstSub = msgs[s].Substring(k, words[i].Length);
+                string keyA = GetDecodedMsg(firstSub, words[i]);
+
+                Console.WriteLine("\n"+firstSub + " "+ keyA+" " + words[i]);
+
+                string secondSub = msgs[l].Substring(k, keyA.Length);
+                string wordA = GetDecodedMsg(secondSub, keyA);
+                if(wordA.Contains(" "))
+                {
+                    wordA = wordA.Split(' ')[1];
+                }
+                Console.WriteLine(secondSub+" "+wordA);
+                int j = LinearSearch(wordA);
+                if (j < words.Count)
+                {
+                    int pos = words[j].IndexOf(wordA) + wordA.Length;
+                    string letters = words[j].Substring(pos);
+               
+                    if (secondSub.Length+letters.Length > firstSub.Length)
+                    {
+                        Console.WriteLine(msgs[l].Substring(k + pos, letters.Length)+" "+letters);
+                        string extraLetters = GetDecodedMsg(msgs[l].Substring(k + pos, letters.Length), letters);
+                       
+
+                      
+                        keyA += extraLetters;
+                        Console.WriteLine(extraLetters);
+                        
+                        Console.WriteLine((msgs[s].Substring(k + pos, letters.Length)));
+                        Console.WriteLine(GetDecodedMsg(msgs[s].Substring(k + pos, letters.Length), extraLetters));
+
+                     
+                          if (GetDecodedMsg(msgs[s].Substring(k + pos, letters.Length), extraLetters).Contains(" "))
+                          {
+                            k++;
+                          }
+
+                        k += keyA.Length;
+                        keyA += GetDecodedMsg(msgs[l][k].ToString(), " ");
+
+                       
+
+                        string temp = msgs[s];
+                        msgs[s] = msgs[l];
+                        msgs[l]= temp;
+                        i = -1;
+                        
+                    }
+                    fullKey += keyA;
+                    Console.WriteLine(fullKey);
+                }
+            }
+        }
+
+
         string GetDecodedMsg(string msg, string key)
         {
             return new Decryption(msg, key).Decrypting();
@@ -195,7 +270,12 @@ namespace i4pTest
     {
         static void Main(string[] args)
         {
-            KeyBf finding = new KeyBf(" t bkgkjdviinbyuijabywicudn", "ym zazrukrtoyu qdkinquj");
+            KeyBf finding = new KeyBf(" t bkgkjdviinbyuijabywicudn", "ym zazrukrtoyu qdkinquj ");
+
+
+
+            finding.Finding();
+            //TaskTwo();
             Console.ReadKey();
         }
 
