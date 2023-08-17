@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 
 namespace i4pTest
@@ -79,15 +78,22 @@ namespace i4pTest
         public string Decrypting()
         {
             string decryptedMsg = "";
-            for (int i = 0; i < message.Length; i++)
+            try
             {
-                int sum = ReturnCharCode(message[i]) - ReturnCharCode(key[i]);
-
-                if (sum < 0)
+                for (int i = 0; i < message.Length; i++)
                 {
-                    sum = 27 + sum;
+                    int sum = ReturnCharCode(message[i]) - ReturnCharCode(key[i]);
+
+                    if (sum < 0)
+                    {
+                        sum = 27 + sum;
+                    }
+                    decryptedMsg += characters[sum];
                 }
-                decryptedMsg += characters[sum];
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Console.WriteLine("Wrong key!");
             }
             return decryptedMsg;
         }
@@ -109,7 +115,7 @@ namespace i4pTest
             msgs.Add(secondMessage);
         }
 
-     
+
         public int LinearSearch(string word)
         {
             int j = 0;
@@ -119,7 +125,7 @@ namespace i4pTest
             }
             return j;
         }
-        public void Finding()
+        public void FindingKey()
         {
             int k = 0;
 
@@ -154,13 +160,13 @@ namespace i4pTest
                         string extraLetters = GetDecodedMsg(msgs[l].Substring(k + pos, letters.Length), letters);
 
 
-                       // k += keyA.Length + 1;
+                        // k += keyA.Length + 1;
                         fullKey += keyA;
                         keyA = extraLetters.Substring(1);
 
 
 
-                        fullKey += GetDecodedMsg(msgs[s][k+keyA.Length+2].ToString(), " ");
+                        fullKey += GetDecodedMsg(msgs[s][k + keyA.Length + 2].ToString(), " ");
                         string temp = msgs[s];
                         msgs[s] = msgs[l];
                         msgs[l] = temp;
@@ -171,9 +177,9 @@ namespace i4pTest
                         Console.WriteLine("didlidudli");
                         fullKey += keyA;
                         fullKey += GetDecodedMsg(msgs[l].Substring(k + pos, letters.Length), letters);
-                   
-                       // k +=keyA.Length+1;
-                        fullKey += GetDecodedMsg(msgs[l][k+keyA.Length+1].ToString(), " ");
+
+                        // k +=keyA.Length+1;
+                        fullKey += GetDecodedMsg(msgs[l][k + keyA.Length + 1].ToString(), " ");
                         keyA = "";
                         string temp = msgs[s];
                         msgs[s] = msgs[l];
@@ -183,7 +189,7 @@ namespace i4pTest
                     }
                     Console.WriteLine(fullKey);
                 }
-                else { keyA = "";}
+                else { keyA = ""; }
             }
         }
 
@@ -211,12 +217,15 @@ namespace i4pTest
     {
         static void Main(string[] args)
         {
-            KeyBf finding = new KeyBf(" t bkgkjdviinbyuijabywicudn", "ym zazrukrtoyu qdkinquj ");
+            KeyBf reversing = new KeyBf(" t bkgkjdviinbyuijabywicudn", "ym zazrukrtoyu qdkinquj ");
+            //Message: curiosity killed the cat
+            //Key: wtjrnhjbnsjgnjwnesbjrsjhgnbvjrd
+            //The encrypted message is: ym zazrukrtoyu qdkinquj
 
-
-
-            finding.Finding();
-
+            //Message: early bird catches the worm
+            //Key: wtjrnhjbnsjgnjwnesbjrsjhgnbvjrd
+            //The encrypted message is:  t bkgkjdviinbyuijabywicudn
+            reversing.FindingKey();
             Console.ReadKey();
         }
 
